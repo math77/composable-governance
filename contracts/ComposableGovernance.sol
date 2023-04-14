@@ -2,6 +2,7 @@
 pragma solidity 0.8.18;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -12,6 +13,8 @@ contract ComposableGovernance is ERC721, ReentrancyGuard, Ownable {
 
   uint256 private _beliefId;
   IMetadataRenderer public renderer;
+
+  address private constant NOUNS_CONTRACT = 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03;
 
 
   struct Belief {
@@ -38,6 +41,7 @@ contract ComposableGovernance is ERC721, ReentrancyGuard, Ownable {
   );
 
   error NonexistentToken();
+  error NonOwnAnyNouns();
 
 
   constructor() ERC721("ComposableGovernance", "CG") Ownable() {}
@@ -45,7 +49,7 @@ contract ComposableGovernance is ERC721, ReentrancyGuard, Ownable {
 
   function createBelief(string calldata beliefText) public returns (uint256) {
 
-    // check if is nouns holder
+    if(IERC721(NOUNS_CONTRACT).balanceOf(msg.sender) == 0) revert NonOwnAnyNouns();
 
     _mint(msg.sender, ++_beliefId);
 
@@ -90,6 +94,8 @@ contract ComposableGovernance is ERC721, ReentrancyGuard, Ownable {
       clonedBy: msg.sender,
       beliefCloned: beliefIdToClone
     });
+
+    return _beliefId;
 
   }
 
